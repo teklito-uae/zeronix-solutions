@@ -88,6 +88,7 @@ export function OutreachCampaignBuilderPage() {
   const [savingSteps, setSavingSteps] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [newProspect, setNewProspect] = useState({ company_name: "", website_url: "", trigger_event: "" });
+  const [researchingId, setResearchingId] = useState<number | null>(null);
 
   function reload() {
     api.outreachCampaigns.get(campaignId).then((c) => {
@@ -145,6 +146,19 @@ export function OutreachCampaignBuilderPage() {
     setNewProspect({ company_name: "", website_url: "", trigger_event: "" });
     setAddOpen(false);
     reload();
+  }
+
+  async function runResearch(prospectId: number) {
+    setResearchingId(prospectId);
+    try {
+      await api.outreachProspects.research(campaignId, prospectId);
+      toast.success("Research queued for this prospect.");
+      reload();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not start research for this prospect");
+    } finally {
+      setResearchingId(null);
+    }
   }
 
   if (!campaign) return null;
@@ -226,6 +240,7 @@ export function OutreachCampaignBuilderPage() {
                   <TableHead>Status</TableHead>
                   <TableHead>Contacts</TableHead>
                   <TableHead>Trigger event</TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -243,11 +258,23 @@ export function OutreachCampaignBuilderPage() {
                     </TableCell>
                     <TableCell className="text-muted-foreground">{p.contacts?.length ?? 0}</TableCell>
                     <TableCell className="text-muted-foreground">{p.trigger_event || "—"}</TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      {(p.status === "pending_research" || p.research_error) && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={researchingId === p.id}
+                          onClick={() => runResearch(p.id)}
+                        >
+                          {p.research_error ? "Retry research" : "Run research"}
+                        </Button>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
                 {prospects.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={4} className="p-8 text-center text-muted-foreground">
+                    <TableCell colSpan={5} className="p-8 text-center text-muted-foreground">
                       No prospects yet. Add a company to start researching contacts.
                     </TableCell>
                   </TableRow>

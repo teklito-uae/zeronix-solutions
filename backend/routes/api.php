@@ -80,6 +80,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/outreach/campaigns/{campaignId}/prospects/{id}', [OutreachProspectController::class, 'show']);
     Route::put('/outreach/campaigns/{campaignId}/prospects/{id}', [OutreachProspectController::class, 'update']);
     Route::delete('/outreach/campaigns/{campaignId}/prospects/{id}', [OutreachProspectController::class, 'destroy']);
+    Route::post('/outreach/campaigns/{campaignId}/prospects/{id}/research', [OutreachProspectController::class, 'research']);
     Route::post('/outreach/campaigns/{campaignId}/prospects/{id}/activate', [OutreachProspectController::class, 'activate']);
     Route::post('/outreach/campaigns/{campaignId}/prospects/{id}/convert-to-enquiry', [OutreachProspectController::class, 'convertToEnquiry']);
 

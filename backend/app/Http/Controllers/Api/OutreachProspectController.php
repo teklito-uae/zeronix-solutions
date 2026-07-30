@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\Outreach\ResearchProspectJob;
 use App\Models\Client;
 use App\Models\Enquiry;
 use App\Models\OutreachProspect;
@@ -93,6 +94,29 @@ class OutreachProspectController extends Controller
         $prospect->update(['status' => 'queued']);
 
         return response()->json($send, 201);
+    }
+
+    /**
+     * Dispatches the Phase 2 AI research pipeline (free scrape+enrich, then a
+     * single Claude call) for a prospect that hasn't been researched yet or
+     * whose previous attempt errored out (ResearchProspectJob always leaves
+     * status as pending_research on a recoverable failure, so that's the
+     * only state this needs to guard against re-dispatch from). Runs on the
+     * queue, so the returned prospect reflects the pre-research state — the
+     * UI should poll/reload to see the filled-in research fields once the
+     * job completes.
+     */
+    public function research(int $campaignId, int $id)
+    {
+        $prospect = OutreachProspect::where('campaign_id', $campaignId)->findOrFail($id);
+
+        if ($prospect->status !== 'pending_research') {
+            return response()->json(['error' => 'this prospect has already been researched'], 422);
+        }
+
+        ResearchProspectJob::dispatch($prospect->id);
+
+        return response()->json($prospect->fresh());
     }
 
     /**

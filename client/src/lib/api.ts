@@ -146,6 +146,8 @@ export const api = {
       req<OutreachProspect>(`/outreach/campaigns/${campaignId}/prospects/${id}`, { method: "PUT", body: JSON.stringify(data) }),
     remove: (campaignId: number, id: number) =>
       req<void>(`/outreach/campaigns/${campaignId}/prospects/${id}`, { method: "DELETE" }),
+    research: (campaignId: number, id: number) =>
+      req<OutreachProspect>(`/outreach/campaigns/${campaignId}/prospects/${id}/research`, { method: "POST" }),
     activate: (campaignId: number, id: number) =>
       req<OutreachSend>(`/outreach/campaigns/${campaignId}/prospects/${id}/activate`, { method: "POST" }),
     convertToEnquiry: (campaignId: number, id: number) =>

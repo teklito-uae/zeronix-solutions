@@ -65,6 +65,19 @@ export function OutreachProspectPage() {
     }
   }
 
+  async function runResearch() {
+    setBusy(true);
+    try {
+      await api.outreachProspects.research(cId, pId);
+      toast.success("Research queued — this page will update once it completes.");
+      reload();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not start research for this prospect");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function convert() {
     setBusy(true);
     try {
@@ -90,6 +103,11 @@ export function OutreachProspectPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {(prospect.status === "pending_research" || prospect.research_error) && (
+            <Button onClick={runResearch} disabled={busy}>
+              {prospect.research_error ? "Retry research" : "Run research"}
+            </Button>
+          )}
           {prospect.status === "contact_found" && (
             <Button onClick={activate} disabled={busy}>
               Start sequence
@@ -102,6 +120,37 @@ export function OutreachProspectPage() {
           )}
         </div>
       </div>
+
+      {prospect.research_error && (
+        <Card className="border-destructive/50">
+          <CardContent className="text-sm text-destructive">
+            <span className="font-medium">Research error: </span>
+            {prospect.research_error}
+          </CardContent>
+        </Card>
+      )}
+
+      {(prospect.research_summary || prospect.industry_guess) && (
+        <Card>
+          <CardContent className="space-y-1.5 text-sm">
+            {prospect.industry_guess && (
+              <div>
+                <span className="font-medium">Industry guess: </span>
+                {prospect.industry_guess}
+                {prospect.industry_confidence !== null && (
+                  <span className="text-muted-foreground"> ({prospect.industry_confidence}% confidence)</span>
+                )}
+              </div>
+            )}
+            {prospect.research_summary && (
+              <div>
+                <span className="font-medium">Research summary: </span>
+                {prospect.research_summary}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {prospect.trigger_event && (
         <Card>
