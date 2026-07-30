@@ -1,4 +1,4 @@
-import { LayoutDashboard, Inbox, Users, Package, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, Inbox, Users, Package, Settings, LogOut, Send } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import {
@@ -16,6 +16,7 @@ import {
 const NAV_ITEMS = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/enquiries", label: "Enquiries", icon: Inbox },
+  { to: "/outreach", label: "Outreach", icon: Send },
   { to: "/clients", label: "Clients", icon: Users },
   { to: "/catalog", label: "Catalog", icon: Package },
   { to: "/settings", label: "Settings", icon: Settings },

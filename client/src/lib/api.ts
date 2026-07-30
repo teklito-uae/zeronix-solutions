@@ -4,6 +4,12 @@ import type {
   Company,
   DashboardStats,
   Enquiry,
+  OutreachCampaign,
+  OutreachContact,
+  OutreachMailbox,
+  OutreachProspect,
+  OutreachSend,
+  OutreachSequenceStep,
   Quote,
   User,
 } from "./types";
@@ -108,5 +114,49 @@ export const api = {
   },
   dashboard: {
     stats: () => req<DashboardStats>("/dashboard/stats"),
+  },
+  outreachMailboxes: {
+    list: () => req<OutreachMailbox[]>("/outreach/mailboxes"),
+    create: (data: Partial<OutreachMailbox> & { smtp_password: string; imap_password: string }) =>
+      req<OutreachMailbox>("/outreach/mailboxes", { method: "POST", body: JSON.stringify(data) }),
+    update: (id: number, data: Partial<OutreachMailbox>) =>
+      req<OutreachMailbox>(`/outreach/mailboxes/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+    remove: (id: number) => req<void>(`/outreach/mailboxes/${id}`, { method: "DELETE" }),
+    test: (id: number) => req<{ ok: boolean; errors?: string[] }>(`/outreach/mailboxes/${id}/test`, { method: "POST" }),
+  },
+  outreachCampaigns: {
+    list: () => req<OutreachCampaign[]>("/outreach/campaigns"),
+    get: (id: number) => req<OutreachCampaign>(`/outreach/campaigns/${id}`),
+    create: (data: Partial<OutreachCampaign>) =>
+      req<OutreachCampaign>("/outreach/campaigns", { method: "POST", body: JSON.stringify(data) }),
+    update: (id: number, data: Partial<OutreachCampaign>) =>
+      req<OutreachCampaign>(`/outreach/campaigns/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+    remove: (id: number) => req<void>(`/outreach/campaigns/${id}`, { method: "DELETE" }),
+    syncSteps: (id: number, steps: OutreachSequenceStep[]) =>
+      req<OutreachCampaign>(`/outreach/campaigns/${id}/steps`, { method: "PUT", body: JSON.stringify({ steps }) }),
+  },
+  outreachProspects: {
+    list: (campaignId: number, status = "") =>
+      req<OutreachProspect[]>(`/outreach/campaigns/${campaignId}/prospects?status=${encodeURIComponent(status)}`),
+    get: (campaignId: number, id: number) =>
+      req<OutreachProspect>(`/outreach/campaigns/${campaignId}/prospects/${id}`),
+    create: (campaignId: number, data: Partial<OutreachProspect>) =>
+      req<OutreachProspect>(`/outreach/campaigns/${campaignId}/prospects`, { method: "POST", body: JSON.stringify(data) }),
+    update: (campaignId: number, id: number, data: Partial<OutreachProspect>) =>
+      req<OutreachProspect>(`/outreach/campaigns/${campaignId}/prospects/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+    remove: (campaignId: number, id: number) =>
+      req<void>(`/outreach/campaigns/${campaignId}/prospects/${id}`, { method: "DELETE" }),
+    activate: (campaignId: number, id: number) =>
+      req<OutreachSend>(`/outreach/campaigns/${campaignId}/prospects/${id}/activate`, { method: "POST" }),
+    convertToEnquiry: (campaignId: number, id: number) =>
+      req<Enquiry>(`/outreach/campaigns/${campaignId}/prospects/${id}/convert-to-enquiry`, { method: "POST" }),
+  },
+  outreachContacts: {
+    create: (prospectId: number, data: Partial<OutreachContact>) =>
+      req<OutreachContact>(`/outreach/prospects/${prospectId}/contacts`, { method: "POST", body: JSON.stringify(data) }),
+    update: (prospectId: number, id: number, data: Partial<OutreachContact>) =>
+      req<OutreachContact>(`/outreach/prospects/${prospectId}/contacts/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+    remove: (prospectId: number, id: number) =>
+      req<void>(`/outreach/prospects/${prospectId}/contacts/${id}`, { method: "DELETE" }),
   },
 };

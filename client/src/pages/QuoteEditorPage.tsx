@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
 import { api } from "../lib/api";
 import type { Quote } from "../lib/types";
 import { BlockEditor } from "../components/BlockEditor";
@@ -15,6 +16,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type SaveState = "idle" | "saving" | "saved";
 
@@ -24,6 +33,9 @@ export function QuoteEditorPage() {
   const [quote, setQuote] = useState<Quote | null>(null);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [shareLoading, setShareLoading] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -66,6 +78,37 @@ export function QuoteEditorPage() {
     navigate(`/quotes/${copy.id}`);
   }
 
+  async function handleOpenShare() {
+    if (!quote) return;
+    setShareOpen(true);
+    setShareLoading(true);
+    try {
+      const { share_url, share_token } = await api.quotes.share(quote.id);
+      setShareUrl(share_url);
+      setQuote((q) => (q ? { ...q, share_token } : q));
+    } catch {
+      toast.error("Couldn't create the share link.");
+      setShareOpen(false);
+    } finally {
+      setShareLoading(false);
+    }
+  }
+
+  async function handleCopyShareLink() {
+    if (!shareUrl) return;
+    await navigator.clipboard.writeText(shareUrl);
+    toast.success("Link copied");
+  }
+
+  async function handleRevokeShareLink() {
+    if (!quote) return;
+    await api.quotes.unshare(quote.id);
+    setQuote((q) => (q ? { ...q, share_token: null } : q));
+    setShareUrl(null);
+    setShareOpen(false);
+    toast.success("Share link revoked");
+  }
+
   if (!quote) {
     return <div className="p-10 text-center text-muted-foreground">Loading…</div>;
   }
@@ -87,6 +130,9 @@ export function QuoteEditorPage() {
         </Button>
         <Button variant="outline" size="sm" onClick={handleViewPdf}>
           View PDF
+        </Button>
+        <Button variant="outline" size="sm" onClick={handleOpenShare}>
+          Share
         </Button>
         <Button size="sm" onClick={handleExportPdf}>
           Export PDF
@@ -144,6 +190,29 @@ export function QuoteEditorPage() {
           <BlockEditor blocks={quote.blocks} onChange={(blocks) => scheduleSave({ ...quote, blocks })} />
         </main>
       </div>
+
+      <Dialog open={shareOpen} onOpenChange={setShareOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Share with customer</DialogTitle>
+            <DialogDescription>
+              Anyone with this link can view and download the PDF — no login required. The link preview
+              shows this quote's title and client name.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center gap-2">
+            <Input readOnly value={shareLoading ? "Generating link…" : shareUrl ?? ""} className="font-mono text-xs" />
+            <Button variant="outline" onClick={handleCopyShareLink} disabled={!shareUrl}>
+              Copy
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" className="text-destructive" onClick={handleRevokeShareLink} disabled={!quote.share_token}>
+              Revoke link
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

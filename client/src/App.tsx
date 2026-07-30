@@ -12,6 +12,10 @@ import { CatalogPage } from "./pages/CatalogPage";
 import { ClientsPage } from "./pages/ClientsPage";
 import { EnquiriesPage } from "./pages/EnquiriesPage";
 import { EnquiryEditorPage } from "./pages/EnquiryEditorPage";
+import { OutreachCampaignsPage } from "./pages/OutreachCampaignsPage";
+import { OutreachCampaignBuilderPage } from "./pages/OutreachCampaignBuilderPage";
+import { OutreachProspectPage } from "./pages/OutreachProspectPage";
+import { OutreachMailboxesPage } from "./pages/OutreachMailboxesPage";
 
 function App() {
   return (
@@ -31,6 +35,10 @@ function App() {
               <Route path="/quotes/:id" element={<QuoteEditorPage />} />
               <Route path="/enquiries" element={<EnquiriesPage />} />
               <Route path="/enquiries/:id" element={<EnquiryEditorPage />} />
+              <Route path="/outreach" element={<OutreachCampaignsPage />} />
+              <Route path="/outreach/mailboxes" element={<OutreachMailboxesPage />} />
+              <Route path="/outreach/:id" element={<OutreachCampaignBuilderPage />} />
+              <Route path="/outreach/:campaignId/prospects/:id" element={<OutreachProspectPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/catalog" element={<CatalogPage />} />
               <Route path="/clients" element={<ClientsPage />} />
