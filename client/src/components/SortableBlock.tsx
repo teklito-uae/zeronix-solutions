@@ -20,7 +20,7 @@ export function SortableBlock({
 
   return (
     <div id={`block-${id}`} ref={setNodeRef} style={style} className="relative group/block scroll-mt-24">
-      <div className="absolute -left-9 top-1 flex flex-col gap-0.5 opacity-0 group-hover/block:opacity-100 transition-opacity">
+      <div className="absolute -left-9 top-1 flex flex-col gap-0.5 opacity-0 pointer-coarse:opacity-100 group-hover/block:opacity-100 transition-opacity">
         <button
           {...attributes}
           {...listeners}

@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import type { CatalogItem } from "../lib/types";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 export function CatalogPickerModal({
   onClose,
@@ -19,23 +26,20 @@ export function CatalogPickerModal({
   const filtered = items.filter((i) => i.description.toLowerCase().includes(q.toLowerCase()));
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={onClose}>
-      <div
-        className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[70vh] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="p-3 border-b border-gray-200">
-          <input
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="flex max-h-[70vh] max-w-[calc(100vw-2rem)] flex-col p-0 sm:max-w-lg">
+        <DialogHeader className="border-b p-3">
+          <DialogTitle className="sr-only">Pick a catalog item</DialogTitle>
+          <Input
             autoFocus
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search catalog items…"
-            className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm outline-none focus:border-brand-navy"
           />
-        </div>
-        <div className="overflow-y-auto flex-1">
+        </DialogHeader>
+        <div className="flex-1 overflow-y-auto">
           {filtered.length === 0 && (
-            <div className="p-4 text-sm text-gray-400 text-center">
+            <div className="p-4 text-center text-sm text-muted-foreground">
               No catalog items yet. Add some in Settings → Catalog.
             </div>
           )}
@@ -43,24 +47,19 @@ export function CatalogPickerModal({
             <button
               key={item.id}
               onClick={() => onPick(item)}
-              className="w-full text-left px-4 py-2 hover:bg-gray-50 border-b border-gray-50 flex justify-between items-center"
+              className="flex w-full items-center justify-between gap-2 border-b px-4 py-2 text-left hover:bg-muted/60"
             >
-              <div>
-                <div className="text-sm font-medium">{item.description}</div>
-                <div className="text-xs text-gray-400">{item.scope}</div>
+              <div className="min-w-0">
+                <div className="truncate text-sm font-medium">{item.description}</div>
+                <div className="truncate text-xs text-muted-foreground">{item.scope}</div>
               </div>
-              <div className="text-sm text-gray-600 whitespace-nowrap ml-2">
+              <div className="shrink-0 whitespace-nowrap text-sm text-muted-foreground">
                 AED {item.unit_price.toLocaleString()}
               </div>
             </button>
           ))}
         </div>
-        <div className="p-2 border-t border-gray-200 text-right">
-          <button onClick={onClose} className="text-xs px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50">
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

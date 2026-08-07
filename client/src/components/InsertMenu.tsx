@@ -18,7 +18,7 @@ export function InsertMenu({ onInsert }: { onInsert: (type: InsertableType) => v
       <div className="flex-1 border-t border-transparent group-hover:border-gray-200 transition-colors" />
       <button
         onClick={() => setOpen((o) => !o)}
-        className="mx-2 w-6 h-6 rounded-full border border-gray-300 text-gray-400 text-sm leading-none opacity-0 group-hover:opacity-100 hover:bg-brand-navy hover:text-white hover:border-brand-navy transition-all flex items-center justify-center"
+        className="mx-2 w-6 h-6 rounded-full border border-gray-300 text-gray-400 text-sm leading-none opacity-0 pointer-coarse:opacity-100 group-hover:opacity-100 hover:bg-brand-navy hover:text-white hover:border-brand-navy transition-all flex items-center justify-center"
         title="Insert block"
       >
         +

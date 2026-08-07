@@ -52,8 +52,8 @@ export function EnquiriesPage() {
   useEffect(() => reload(), []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-8 space-y-6">
-      <div className="flex items-center gap-3">
+    <div className="mx-auto max-w-6xl px-4 py-6 space-y-6 sm:px-6 sm:py-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <Input
           value={q}
           onChange={(e) => {
@@ -63,29 +63,34 @@ export function EnquiriesPage() {
           placeholder="Search enquiries by title, number, or contact…"
           className="flex-1"
         />
-        <Select
-          value={status}
-          onValueChange={(value) => {
-            setStatus(value);
-            reload(q, value);
-          }}
-        >
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="All statuses" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            {ENQUIRY_STATUSES.map((s) => (
-              <SelectItem key={s} value={s}>
-                {STATUS_LABEL[s]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button onClick={() => navigate("/enquiries/new")}>+ New Enquiry</Button>
+        <div className="flex gap-2">
+          <Select
+            value={status}
+            onValueChange={(value) => {
+              setStatus(value);
+              reload(q, value);
+            }}
+          >
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="All statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              {ENQUIRY_STATUSES.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {STATUS_LABEL[s]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button className="flex-1 sm:flex-initial" onClick={() => navigate("/enquiries/new")}>
+            + New Enquiry
+          </Button>
+        </div>
       </div>
 
-      <Card className="py-0">
+      <Card className="py-0 overflow-hidden">
+        <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -136,6 +141,7 @@ export function EnquiriesPage() {
             )}
           </TableBody>
         </Table>
+        </div>
       </Card>
     </div>
   );

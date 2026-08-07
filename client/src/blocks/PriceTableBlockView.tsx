@@ -45,7 +45,8 @@ export function PriceTableBlockView({
 
   return (
     <div className="border border-gray-200 rounded-md overflow-hidden bg-white">
-      <table className="w-full text-sm">
+      <div className="overflow-x-auto">
+      <table className="w-full min-w-[520px] text-sm">
         <thead>
           <tr className="bg-green-50 text-green-900 text-left">
             <th className="p-2 font-semibold">Description</th>
@@ -103,8 +104,9 @@ export function PriceTableBlockView({
           ))}
         </tbody>
       </table>
+      </div>
 
-      <div className="flex gap-2 p-2 border-t border-gray-100 bg-gray-50">
+      <div className="flex flex-wrap gap-2 p-2 border-t border-gray-100 bg-gray-50">
         <button onClick={addRow} className="text-xs px-2 py-1 rounded border border-gray-300 bg-white hover:bg-gray-100">
           + Add Row
         </button>

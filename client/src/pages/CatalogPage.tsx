@@ -49,23 +49,23 @@ export function CatalogPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-8 space-y-6">
+    <div className="mx-auto max-w-4xl px-4 py-6 space-y-6 sm:px-6 sm:py-8">
       <div>
         <h1 className="text-lg font-semibold text-foreground">Catalog Items</h1>
       </div>
 
       <Card>
         <CardContent>
-          <div className="grid grid-cols-12 gap-2 items-end">
-            <div className="col-span-4 space-y-1.5">
+          <div className="grid grid-cols-1 gap-3 items-end sm:grid-cols-2 lg:grid-cols-12 lg:gap-2">
+            <div className="lg:col-span-4 space-y-1.5">
               <Label>Description</Label>
               <Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
             </div>
-            <div className="col-span-4 space-y-1.5">
+            <div className="lg:col-span-4 space-y-1.5">
               <Label>Scope</Label>
               <Input value={form.scope} onChange={(e) => setForm({ ...form, scope: e.target.value })} />
             </div>
-            <div className="col-span-2 space-y-1.5">
+            <div className="lg:col-span-2 space-y-1.5">
               <Label>Unit Price (AED)</Label>
               <Input
                 type="number"
@@ -73,7 +73,7 @@ export function CatalogPage() {
                 onChange={(e) => setForm({ ...form, unit_price: Number(e.target.value) })}
               />
             </div>
-            <div className="col-span-2">
+            <div className="sm:col-span-2 lg:col-span-2">
               <Button onClick={add} className="w-full">
                 + Add
               </Button>
@@ -82,7 +82,8 @@ export function CatalogPage() {
         </CardContent>
       </Card>
 
-      <Card className="py-0">
+      <Card className="py-0 overflow-hidden">
+        <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -119,6 +120,7 @@ export function CatalogPage() {
             )}
           </TableBody>
         </Table>
+        </div>
       </Card>
 
       <AlertDialog open={deleteId != null} onOpenChange={(open) => !open && setDeleteId(null)}>

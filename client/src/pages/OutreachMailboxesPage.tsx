@@ -93,8 +93,8 @@ export function OutreachMailboxesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-8 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="mx-auto max-w-5xl px-4 py-6 space-y-6 sm:px-6 sm:py-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-lg font-semibold text-foreground">Connected Mailboxes</h1>
           <p className="text-sm text-muted-foreground">
@@ -106,12 +106,12 @@ export function OutreachMailboxesPage() {
           <DialogTrigger asChild>
             <Button>+ Connect Mailbox</Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-2xl">
             <DialogHeader>
               <DialogTitle>Connect a mailbox</DialogTitle>
             </DialogHeader>
-            <div className="grid grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto pr-1">
-              <div className="col-span-2 space-y-1.5">
+            <div className="grid grid-cols-1 gap-3 max-h-[60vh] overflow-y-auto pr-1 sm:grid-cols-2">
+              <div className="sm:col-span-2 space-y-1.5">
                 <Label>Label</Label>
                 <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Sales outreach" />
               </div>
@@ -124,7 +124,7 @@ export function OutreachMailboxesPage() {
                 <Input value={form.from_email} onChange={(e) => setForm({ ...form, from_email: e.target.value })} />
               </div>
 
-              <div className="col-span-2 text-xs font-medium text-muted-foreground pt-2">SMTP (sending)</div>
+              <div className="sm:col-span-2 text-xs font-medium text-muted-foreground pt-2">SMTP (sending)</div>
               <div className="space-y-1.5">
                 <Label>Host</Label>
                 <Input value={form.smtp_host} onChange={(e) => setForm({ ...form, smtp_host: e.target.value })} />
@@ -142,7 +142,7 @@ export function OutreachMailboxesPage() {
                 <Input type="password" value={form.smtp_password} onChange={(e) => setForm({ ...form, smtp_password: e.target.value })} />
               </div>
 
-              <div className="col-span-2 text-xs font-medium text-muted-foreground pt-2">IMAP (reply/bounce detection)</div>
+              <div className="sm:col-span-2 text-xs font-medium text-muted-foreground pt-2">IMAP (reply/bounce detection)</div>
               <div className="space-y-1.5">
                 <Label>Host</Label>
                 <Input value={form.imap_host} onChange={(e) => setForm({ ...form, imap_host: e.target.value })} />
@@ -160,7 +160,7 @@ export function OutreachMailboxesPage() {
                 <Input type="password" value={form.imap_password} onChange={(e) => setForm({ ...form, imap_password: e.target.value })} />
               </div>
 
-              <div className="col-span-2 space-y-1.5">
+              <div className="sm:col-span-2 space-y-1.5">
                 <Label>Daily send cap (start low — this ramps up automatically)</Label>
                 <Input
                   type="number"
@@ -181,7 +181,7 @@ export function OutreachMailboxesPage() {
       <div className="space-y-3">
         {mailboxes.map((mb) => (
           <Card key={mb.id}>
-            <CardContent className="flex items-center justify-between">
+            <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <div className="flex items-center gap-2">
                   <span className="font-medium">{mb.name}</span>

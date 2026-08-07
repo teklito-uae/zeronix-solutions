@@ -64,8 +64,8 @@ export function OutreachCampaignsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-8 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="mx-auto max-w-6xl px-4 py-6 space-y-6 sm:px-6 sm:py-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-lg font-semibold text-foreground">Outreach Campaigns</h1>
           <p className="text-sm text-muted-foreground">
@@ -73,14 +73,14 @@ export function OutreachCampaignsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => navigate("/outreach/mailboxes")}>
+          <Button className="flex-1 sm:flex-initial" variant="outline" onClick={() => navigate("/outreach/mailboxes")}>
             Mailboxes
           </Button>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button>+ New Campaign</Button>
+              <Button className="flex-1 sm:flex-initial">+ New Campaign</Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-lg">
               <DialogHeader>
                 <DialogTitle>New outreach campaign</DialogTitle>
               </DialogHeader>
@@ -129,7 +129,7 @@ export function OutreachCampaignsPage() {
       <div className="grid gap-3">
         {campaigns.map((c) => (
           <Card key={c.id} className="cursor-pointer" onClick={() => navigate(`/outreach/${c.id}`)}>
-            <CardContent className="flex items-center justify-between">
+            <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <div className="flex items-center gap-2">
                   <span className="font-medium">{c.name}</span>

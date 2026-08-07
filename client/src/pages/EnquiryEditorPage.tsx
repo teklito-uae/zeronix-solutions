@@ -161,8 +161,8 @@ export function EnquiryEditorPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-8 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="mx-auto max-w-3xl px-4 py-6 space-y-6 sm:px-6 sm:py-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-lg font-semibold text-foreground">
             {isNew && enquiryId == null ? "New Enquiry" : "Edit Enquiry"}
@@ -173,11 +173,11 @@ export function EnquiryEditorPage() {
         </div>
         <div className="flex gap-2">
           {enquiryId != null && (
-            <Button variant="outline" onClick={handleConvert} disabled={converting}>
+            <Button className="flex-1 sm:flex-initial" variant="outline" onClick={handleConvert} disabled={converting}>
               {converting ? "Converting…" : "Convert to Quote"}
             </Button>
           )}
-          <Button onClick={handleSave} disabled={saving}>
+          <Button className="flex-1 sm:flex-initial" onClick={handleSave} disabled={saving}>
             {saving ? "Saving…" : "Save"}
           </Button>
         </div>

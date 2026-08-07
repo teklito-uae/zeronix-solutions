@@ -123,32 +123,34 @@ export function QuoteEditorPage() {
 
   return (
     <div className="min-h-full">
-      <div className="sticky top-0 z-30 flex items-center gap-4 border-b bg-background px-6 py-3">
+      <div className="sticky top-0 z-30 flex flex-col gap-2 border-b bg-background px-4 py-3 sm:gap-4 sm:px-6 md:flex-row md:items-center">
         <Input
           value={quote.title}
           onChange={(e) => scheduleSave({ ...quote, title: e.target.value })}
-          className="flex-1 border-none text-lg font-semibold shadow-none focus-visible:ring-0"
+          className="flex-1 border-none px-0 text-lg font-semibold shadow-none focus-visible:ring-0 md:px-3"
         />
-        <span className="text-xs text-muted-foreground">{quote.quote_no}</span>
-        <span className="w-16 text-xs text-muted-foreground">
-          {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved" : ""}
-        </span>
-        <Button variant="outline" size="sm" onClick={handleDuplicate}>
-          Duplicate
-        </Button>
-        <Button variant="outline" size="sm" onClick={handleViewPdf}>
-          View PDF
-        </Button>
-        <Button variant="outline" size="sm" onClick={handleOpenShare}>
-          Share
-        </Button>
-        <Button size="sm" onClick={handleExportPdf}>
-          Export PDF
-        </Button>
+        <div className="flex items-center gap-3 overflow-x-auto">
+          <span className="shrink-0 text-xs text-muted-foreground">{quote.quote_no}</span>
+          <span className="w-14 shrink-0 text-xs text-muted-foreground">
+            {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved" : ""}
+          </span>
+          <Button className="shrink-0" variant="outline" size="sm" onClick={handleDuplicate}>
+            Duplicate
+          </Button>
+          <Button className="shrink-0" variant="outline" size="sm" onClick={handleViewPdf}>
+            View PDF
+          </Button>
+          <Button className="shrink-0" variant="outline" size="sm" onClick={handleOpenShare}>
+            Share
+          </Button>
+          <Button className="shrink-0" size="sm" onClick={handleExportPdf}>
+            Export PDF
+          </Button>
+        </div>
       </div>
 
-      <div className="mx-auto flex max-w-6xl gap-6 px-6 py-8">
-        <aside className="w-64 shrink-0 space-y-4">
+      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:flex-row">
+        <aside className="space-y-4 lg:w-64 lg:shrink-0">
           <Card>
             <CardContent className="space-y-3 px-4 py-3">
               <div className="space-y-1.5">
@@ -215,7 +217,7 @@ export function QuoteEditorPage() {
           </div>
         </aside>
 
-        <main className="max-w-3xl flex-1 rounded-lg border bg-card p-8">
+        <main className="max-w-3xl flex-1 rounded-lg border bg-card p-4 sm:p-8">
           <BlockEditor blocks={quote.blocks} onChange={(blocks) => scheduleSave({ ...quote, blocks })} />
         </main>
       </div>

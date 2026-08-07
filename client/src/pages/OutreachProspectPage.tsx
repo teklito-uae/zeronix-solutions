@@ -94,15 +94,15 @@ export function OutreachProspectPage() {
   if (!prospect) return null;
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-8 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="mx-auto max-w-4xl px-4 py-6 space-y-6 sm:px-6 sm:py-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-lg font-semibold text-foreground">{prospect.company_name}</h1>
           <p className="text-sm text-muted-foreground">
             {prospect.website_url} {prospect.industry_guess ? `· ${prospect.industry_guess}` : ""}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {(prospect.status === "pending_research" || prospect.research_error) && (
             <Button onClick={runResearch} disabled={busy}>
               {prospect.research_error ? "Retry research" : "Run research"}

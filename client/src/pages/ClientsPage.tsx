@@ -76,35 +76,35 @@ export function ClientsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-8 space-y-6">
+    <div className="mx-auto max-w-5xl px-4 py-6 space-y-6 sm:px-6 sm:py-8">
       <div>
         <h1 className="text-lg font-semibold text-foreground">Clients</h1>
       </div>
 
       <Card>
         <CardContent>
-          <div className="grid grid-cols-12 gap-2 items-end">
-            <div className="col-span-2 space-y-1.5">
+          <div className="grid grid-cols-1 gap-3 items-end sm:grid-cols-2 lg:grid-cols-12 lg:gap-2">
+            <div className="lg:col-span-2 space-y-1.5">
               <Label>Name</Label>
               <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             </div>
-            <div className="col-span-2 space-y-1.5">
+            <div className="lg:col-span-2 space-y-1.5">
               <Label>Company</Label>
               <Input value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} />
             </div>
-            <div className="col-span-2 space-y-1.5">
+            <div className="lg:col-span-2 space-y-1.5">
               <Label>Phone</Label>
               <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
             </div>
-            <div className="col-span-3 space-y-1.5">
+            <div className="lg:col-span-3 space-y-1.5">
               <Label>Email</Label>
               <Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
             </div>
-            <div className="col-span-2 space-y-1.5">
+            <div className="lg:col-span-2 space-y-1.5">
               <Label>Address</Label>
               <Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
             </div>
-            <div className="col-span-1">
+            <div className="sm:col-span-2 lg:col-span-1">
               <Button onClick={add} className="w-full">
                 + Add
               </Button>
@@ -122,7 +122,8 @@ export function ClientsPage() {
         placeholder="Search clients by name or company…"
       />
 
-      <Card className="py-0">
+      <Card className="py-0 overflow-hidden">
+        <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -189,6 +190,7 @@ export function ClientsPage() {
             )}
           </TableBody>
         </Table>
+        </div>
       </Card>
 
       <AlertDialog open={deleteId != null} onOpenChange={(open) => !open && setDeleteId(null)}>

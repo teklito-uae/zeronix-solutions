@@ -33,7 +33,7 @@ export function SettingsPage() {
   if (!company) return <div className="p-10 text-center text-muted-foreground">Loading…</div>;
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-8 space-y-6">
+    <div className="mx-auto max-w-3xl px-4 py-6 space-y-6 sm:px-6 sm:py-8">
       <div>
         <h1 className="text-lg font-semibold text-foreground">Company Settings</h1>
       </div>
@@ -58,7 +58,7 @@ export function SettingsPage() {
               rows={3}
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label>Logo (for light backgrounds)</Label>
               <div className="bg-background border border-border rounded p-3 mb-2 h-16 flex items-center">

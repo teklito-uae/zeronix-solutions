@@ -164,8 +164,8 @@ export function OutreachCampaignBuilderPage() {
   if (!campaign) return null;
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-8 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="mx-auto max-w-6xl px-4 py-6 space-y-6 sm:px-6 sm:py-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-lg font-semibold text-foreground">{campaign.name}</h1>
           <p className="text-sm text-muted-foreground">{campaign.service_focus}</p>
@@ -232,7 +232,8 @@ export function OutreachCampaignBuilderPage() {
             </Dialog>
           </div>
 
-          <Card className="py-0">
+          <Card className="py-0 overflow-hidden">
+            <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -281,6 +282,7 @@ export function OutreachCampaignBuilderPage() {
                 )}
               </TableBody>
             </Table>
+            </div>
           </Card>
         </TabsContent>
 
@@ -339,7 +341,7 @@ export function OutreachCampaignBuilderPage() {
 
         <TabsContent value="settings" className="space-y-4">
           <Card>
-            <CardContent className="grid grid-cols-2 gap-4">
+            <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label>Sending mailbox</Label>
                 <Select
@@ -366,11 +368,11 @@ export function OutreachCampaignBuilderPage() {
                   onBlur={(e) => saveSettings({ daily_new_send_limit: Number(e.target.value) })}
                 />
               </div>
-              <div className="col-span-2 space-y-1.5">
+              <div className="sm:col-span-2 space-y-1.5">
                 <Label>Service focus (used to personalize drafts)</Label>
                 <Input defaultValue={campaign.service_focus ?? ""} onBlur={(e) => saveSettings({ service_focus: e.target.value })} />
               </div>
-              <div className="col-span-2 space-y-1.5">
+              <div className="sm:col-span-2 space-y-1.5">
                 <Label>Target industry notes</Label>
                 <Textarea
                   defaultValue={campaign.target_industry_notes ?? ""}

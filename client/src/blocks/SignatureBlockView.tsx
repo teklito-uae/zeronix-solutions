@@ -8,7 +8,7 @@ export function SignatureBlockView({
   onChange: (b: SignatureBlock) => void;
 }) {
   return (
-    <div className="grid grid-cols-2 gap-8 border border-gray-200 rounded-md bg-white p-4 text-sm">
+    <div className="grid grid-cols-1 gap-4 border border-gray-200 rounded-md bg-white p-4 text-sm sm:grid-cols-2 sm:gap-8">
       <div className="space-y-1">
         <div className="font-semibold text-brand-navy">Prepared By</div>
         <input

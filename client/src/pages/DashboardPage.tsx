@@ -84,10 +84,10 @@ export function DashboardPage() {
     : 0;
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-8 space-y-8">
+    <div className="mx-auto max-w-6xl px-4 py-6 space-y-6 sm:px-6 sm:py-8 sm:space-y-8">
       {stats && (
         <>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-6">
             <StatCard label="Total Quotes" value={stats.quotes_total.toLocaleString()} />
             <StatCard label="Accepted" value={stats.quotes_by_status.accepted.toLocaleString()} />
             <StatCard label="Sent / Pending" value={stats.quotes_by_status.sent.toLocaleString()} />
@@ -124,7 +124,7 @@ export function DashboardPage() {
         </>
       )}
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <Input
           value={q}
           onChange={(e) => {
@@ -134,13 +134,18 @@ export function DashboardPage() {
           placeholder="Search quotes by title, number, or client…"
           className="flex-1"
         />
-        <Button onClick={() => createNew(true)}>+ New from Template</Button>
-        <Button variant="outline" onClick={() => createNew(false)}>
-          + Blank Quote
-        </Button>
+        <div className="flex gap-2">
+          <Button className="flex-1 sm:flex-initial" onClick={() => createNew(true)}>
+            + New from Template
+          </Button>
+          <Button className="flex-1 sm:flex-initial" variant="outline" onClick={() => createNew(false)}>
+            + Blank Quote
+          </Button>
+        </div>
       </div>
 
-      <Card className="py-0">
+      <Card className="py-0 overflow-hidden">
+        <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -194,6 +199,7 @@ export function DashboardPage() {
             )}
           </TableBody>
         </Table>
+        </div>
       </Card>
 
       <AlertDialog open={deleteId != null} onOpenChange={(open) => !open && setDeleteId(null)}>

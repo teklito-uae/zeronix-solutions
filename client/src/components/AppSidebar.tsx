@@ -1,6 +1,7 @@
-import { LayoutDashboard, Inbox, Users, Package, Settings, LogOut, Send } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { NAV_ITEMS } from "./nav-items";
 import {
   Sidebar,
   SidebarContent,
@@ -12,15 +13,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-
-const NAV_ITEMS = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/enquiries", label: "Enquiries", icon: Inbox },
-  { to: "/outreach", label: "Outreach", icon: Send },
-  { to: "/clients", label: "Clients", icon: Users },
-  { to: "/catalog", label: "Catalog", icon: Package },
-  { to: "/settings", label: "Settings", icon: Settings },
-];
 
 export function AppSidebar() {
   const location = useLocation();
