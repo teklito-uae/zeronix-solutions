@@ -95,6 +95,7 @@ HTML;
         $body = implode("\n", array_map(fn ($b) => $this->renderBlock($b), $blocks));
         $logo = $company['logo_data_url'] ?? '';
         $watermark = $logo ? "<div class=\"watermark\"><img src=\"{$logo}\" alt=\"\"/></div>" : '';
+        $header = $this->headerMarkup($company, $quote);
         $title = $this->esc($quote['quote_no'] ?? '');
         $margin = self::CONTENT_PAGE_MARGIN;
         $sharedStyle = $this->sharedStyle();
@@ -114,6 +115,7 @@ HTML;
 </head>
 <body>
 {$watermark}
+{$header}
 {$body}
 </body>
 </html>
@@ -158,35 +160,28 @@ HTML;
 HTML;
     }
 
-    public function renderHeaderTemplate(array $company, array $quote): string
+    /**
+     * Repeating header, baked directly into the content flow as a
+     * position:fixed element (dompdf repeats any position:fixed element on
+     * every page). The footer is drawn separately by QuotePdfGenerator via
+     * dompdf's Canvas API instead of HTML/CSS, since it needs the live
+     * page-number/page-count values that only the canvas layer has access
+     * to (dompdf has no CSS `counter(page)` support, unlike browsers).
+     */
+    private function headerMarkup(array $company, array $quote): string
     {
-        $fontFace = $this->fontFaceCss();
         $logoSrc = $company['logo_data_url'] ?? '';
         $logo = $logoSrc
-            ? "<img src=\"{$logoSrc}\" style=\"height:11mm; max-width:55mm; object-fit:contain;\" />"
+            ? "<img src=\"{$logoSrc}\" style=\"height:11mm; max-width:55mm;\" />"
             : '<span style="font-weight:700; font-size:9pt; color:'.self::THEME['darkNavy'].';">'.$this->esc($company['name'] ?? '').'</span>';
         $quoteNo = $this->esc($quote['quote_no'] ?? '');
-        $pageBox = $this->pageBoxStyle();
 
         return <<<HTML
-<style>{$fontFace}</style>
-<div class="hdr" style="{$pageBox} display:flex; align-items:center; justify-content:space-between; padding:3mm 0 4.5mm 0; border-bottom:0.5pt solid #dcdfe6;">
-    {$logo}
-    <span style="font-size:7.5pt; color:#8a8f99; letter-spacing:0.3px;">{$quoteNo}</span>
-</div>
-HTML;
-    }
-
-    public function renderFooterTemplate(array $company): string
-    {
-        $fontFace = $this->fontFaceCss();
-        $pageBox = $this->pageBoxStyle();
-
-        return <<<HTML
-<style>{$fontFace}</style>
-<div class="ftr" style="{$pageBox} display:flex; align-items:center; justify-content:space-between; padding-top:2.5mm; border-top:0.5pt solid #dcdfe6; font-size:8pt; color:#6b7280;">
-    <span>www.zeronix.ae</span>
-    <span><span class="pageNumber"></span> of <span class="totalPages"></span></span>
+<div class="pdf-header">
+  <table class="hdr-table"><tr>
+    <td class="hdr-logo">{$logo}</td>
+    <td class="hdr-quoteno">{$quoteNo}</td>
+  </tr></table>
 </div>
 HTML;
     }
@@ -311,27 +306,31 @@ HTML;
     {
         $heading = $this->esc($block['heading'] ?? 'About Us');
         $description = $block['description'] ?? '';
-        $services = $block['services'] ?? [];
+        $services = array_values($block['services'] ?? []);
 
-        $servicesHtml = implode('', array_map(function ($s) {
-            $title = $this->esc($s['title'] ?? '');
-            $desc = $this->esc($s['description'] ?? '');
+        // A real <table> here (rather than floated divs) because dompdf's
+        // float layout doesn't reliably clear/position side-by-side floats
+        // — cards ended up stacked on top of each other instead of in a
+        // 2-column grid.
+        $card = fn (array $s) => '<div class="about-service">'
+            .'<div class="about-service-title">'.$this->esc($s['title'] ?? '').'</div>'
+            .'<div class="about-service-desc">'.$this->esc($s['description'] ?? '').'</div>'
+            .'</div>';
 
-            return <<<HTML
-            <div class="about-service">
-              <div class="about-service-title">{$title}</div>
-              <div class="about-service-desc">{$desc}</div>
-            </div>
-HTML;
-        }, $services));
+        $rowsHtml = '';
+        for ($i = 0; $i < count($services); $i += 2) {
+            $left = $card($services[$i]);
+            $right = isset($services[$i + 1]) ? $card($services[$i + 1]) : '';
+            $rowsHtml .= '<tr><td class="about-service-cell">'.$left.'</td><td class="about-service-cell">'.$right.'</td></tr>';
+        }
 
         return <<<HTML
         <div class="about-block">
           <h2 class="section-heading">{$heading}</h2>
           <div class="richtext">{$description}</div>
-          <div class="about-services">
-            {$servicesHtml}
-          </div>
+          <table class="about-services">
+            {$rowsHtml}
+          </table>
         </div>
 HTML;
     }
@@ -361,25 +360,27 @@ HTML;
       <h1>{$title}</h1>
       <div class="cover-rule"></div>
     </div>
-    <div class="cover-meta">
-      <div class="cover-meta-item">
-        <div class="cover-meta-label">Prepared For</div>
-        <div class="cover-meta-value">{$this->esc($cover['preparedFor'] ?? '')}</div>
-      </div>
-      <div class="cover-meta-item">
-        <div class="cover-meta-label">Prepared By</div>
-        <div class="cover-meta-value">{$this->esc($cover['preparedBy'] ?? '')}</div>
-      </div>
-      <div class="cover-meta-item">
-        <div class="cover-meta-label">Quote No.</div>
-        <div class="cover-meta-value cover-meta-value-sub">{$this->esc($quote['quote_no'] ?? '')}</div>
-      </div>
-      <div class="cover-meta-item">
-        <div class="cover-meta-label">Date</div>
-        <div class="cover-meta-value cover-meta-value-sub">{$this->fmtDate($quote['quote_date'] ?? null)}</div>
-      </div>
+    <div class="cover-bottom">
+      <table class="cover-meta">
+        <tr class="cover-meta-item">
+          <td class="cover-meta-label">Prepared For</td>
+          <td class="cover-meta-value">{$this->esc($cover['preparedFor'] ?? '')}</td>
+        </tr>
+        <tr class="cover-meta-item">
+          <td class="cover-meta-label">Prepared By</td>
+          <td class="cover-meta-value">{$this->esc($cover['preparedBy'] ?? '')}</td>
+        </tr>
+        <tr class="cover-meta-item">
+          <td class="cover-meta-label">Quote No.</td>
+          <td class="cover-meta-value cover-meta-value-sub">{$this->esc($quote['quote_no'] ?? '')}</td>
+        </tr>
+        <tr class="cover-meta-item">
+          <td class="cover-meta-label">Date</td>
+          <td class="cover-meta-value cover-meta-value-sub">{$this->fmtDate($quote['quote_date'] ?? null)}</td>
+        </tr>
+      </table>
+      <div class="cover-foot">{$this->esc($company['address'] ?? '')}{$trn}</div>
     </div>
-    <div class="cover-foot">{$this->esc($company['address'] ?? '')}{$trn}</div>
   </section>
 HTML;
     }
@@ -489,24 +490,30 @@ HTML;
             return self::$fontFaceCssCache;
         }
 
+        // TTF, not WOFF2: dompdf's font parser (php-font-lib) has no WOFF2
+        // decoder (WOFF2 needs Brotli decompression, which it doesn't
+        // implement), so a WOFF2 @font-face silently fails to embed and
+        // dompdf falls back to its default serif font. TTF is fully
+        // supported and renders identically in browsers for the HTML
+        // preview route.
         $weights = [
-            400 => 'inter-latin-400-normal.woff2',
-            600 => 'inter-latin-600-normal.woff2',
-            700 => 'inter-latin-700-normal.woff2',
-            800 => 'inter-latin-800-normal.woff2',
+            400 => 'inter-latin-400-normal.ttf',
+            600 => 'inter-latin-600-normal.ttf',
+            700 => 'inter-latin-700-normal.ttf',
+            800 => 'inter-latin-800-normal.ttf',
         ];
 
         $fontDir = resource_path('fonts');
         $css = '';
         foreach ($weights as $weight => $file) {
             $bytes = file_get_contents($fontDir.DIRECTORY_SEPARATOR.$file);
-            $dataUri = 'data:font/woff2;base64,'.base64_encode($bytes);
+            $dataUri = 'data:font/ttf;base64,'.base64_encode($bytes);
             $css .= "\n  @font-face {\n"
                 ."    font-family: 'Inter';\n"
                 ."    font-style: normal;\n"
                 ."    font-weight: {$weight};\n"
                 ."    font-display: swap;\n"
-                ."    src: url(\"{$dataUri}\") format('woff2');\n"
+                ."    src: url(\"{$dataUri}\") format('truetype');\n"
                 ."  }";
         }
 
@@ -547,10 +554,6 @@ HTML;
         return 'data:image/svg+xml,'.$this->jsEncodeUriComponent($svg);
     }
 
-    private function pageBoxStyle(): string
-    {
-        return 'font-family:'.self::FONT_STACK.'; width:100%; margin:0 18mm; box-sizing:border-box;';
-    }
 
     private function sharedStyle(): string
     {
@@ -573,17 +576,31 @@ HTML;
   .watermark {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     z-index: -1;
     pointer-events: none;
   }
   .watermark img {
+    position: absolute;
+    top: 50%; left: 50%;
     width: 110mm;
+    margin-left: -55mm;
+    margin-top: -55mm;
     opacity: 0.05;
     filter: grayscale(1);
   }
+
+  /* ---------- Repeating header ---------- */
+  .pdf-header {
+    position: fixed;
+    top: -24mm;
+    left: 0; right: 0;
+    padding-bottom: 4.5mm;
+    border-bottom: 0.5pt solid #dcdfe6;
+  }
+  .hdr-table { width: 100%; border-collapse: collapse; }
+  .hdr-table td { vertical-align: middle; padding: 0; border: none; }
+  .hdr-logo { text-align: left; }
+  .hdr-quoteno { text-align: right; font-size: 7.5pt; color: #8a8f99; letter-spacing: 0.3px; }
 
   .pagebreak { page-break-after: always; }
 
@@ -647,11 +664,13 @@ HTML;
     font-size: 9.5pt;
   }
   .totals-row {
-    display: flex;
-    justify-content: space-between;
+    display: table;
+    width: 100%;
     padding: 1.8mm 0;
     color: {$t['mutedGray']};
   }
+  .totals-row > span { display: table-cell; }
+  .totals-row > span:last-child { text-align: right; }
   .totals-row.totals-grand {
     color: {$t['darkNavy']};
     font-weight: 700;
@@ -680,16 +699,21 @@ HTML;
 
   /* ---------- Signature block ---------- */
   .signature-block {
-    display: flex;
-    justify-content: space-between;
+    display: table;
+    width: 100%;
     margin-top: 10mm;
-    gap: 12mm;
   }
   .signature-col {
-    flex: 1;
+    display: table-cell;
+    width: 50%;
     font-size: 9.5pt;
     border-top: 2px solid {$t['darkNavy']};
     padding-top: 3mm;
+    padding-right: 6mm;
+  }
+  .signature-col:last-child {
+    padding-right: 0;
+    padding-left: 6mm;
   }
   .signature-label { font-weight: 700; color: {$t['darkNavy']}; font-size: 10.5pt; margin-bottom: 1mm; }
   .signature-company { margin-bottom: 1mm; }
@@ -698,14 +722,20 @@ HTML;
 
   /* ---------- About the company ---------- */
   .about-services {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4mm;
+    width: 100%;
+    border-collapse: separate;
     margin: 4mm 0 2mm;
   }
+  .about-service-cell {
+    width: 50%;
+    vertical-align: top;
+    padding: 0 2mm 4mm 0;
+  }
+  .about-service-cell:last-child {
+    padding-right: 0;
+    padding-left: 2mm;
+  }
   .about-service {
-    flex: 1 1 calc(50% - 4mm);
-    min-width: 70mm;
     border: 1px solid {$t['borderGray']};
     border-radius: 2mm;
     padding: 3.5mm;
@@ -731,15 +761,19 @@ CSS;
 
         return <<<CSS
   .cover {
+    /* dompdf's box-sizing:border-box support is unreliable when combined
+       with position:relative + a page-filling height, so this is sized as
+       content-box: 267mm + 30mm vertical padding = 297mm (A4 height), and
+       170mm + 40mm horizontal padding = 210mm (A4 width). */
+    box-sizing: content-box;
     position: relative;
-    height: 297mm;
-    width: 210mm;
+    height: 267mm;
+    width: 170mm;
     padding: 16mm 20mm 14mm 20mm;
-    background: linear-gradient(165deg, {$t['darkNavy']} 0%, {$t['black']} 78%);
+    background-color: {$t['darkNavy']};
+    background-image: linear-gradient(165deg, {$t['darkNavy']} 0%, {$t['black']} 78%);
     color: white;
     overflow: hidden;
-    display: flex;
-    flex-direction: column;
   }
   .cover-splash {
     position: absolute;
@@ -787,22 +821,29 @@ CSS;
     border-radius: 1mm;
   }
 
+  .cover-bottom {
+    /* Unlike the CSS spec, dompdf positions absolute descendants relative
+       to the ancestor's border box, not its padding box — so .cover's own
+       20mm/14mm padding is NOT inherited here and must be repeated. */
+    position: absolute;
+    left: 20mm;
+    right: 20mm;
+    bottom: 14mm;
+  }
   .cover-meta {
-    position: relative;
-    margin-top: auto;
+    width: 100%;
+    border-collapse: collapse;
     border-top: 0.75pt solid rgba(255,255,255,0.22);
     padding-top: 5mm;
   }
-  .cover-meta-item {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 8mm;
+  .cover-meta-item td {
     padding: 3mm 0;
     border-bottom: 0.75pt solid rgba(255,255,255,0.12);
   }
-  .cover-meta-item:last-child { border-bottom: none; }
+  .cover-meta-item:last-child td { border-bottom: none; }
   .cover-meta-label {
+    width: 1%;
+    text-align: left;
     text-transform: uppercase;
     letter-spacing: 1.8px;
     font-size: 7.5pt;
@@ -810,7 +851,7 @@ CSS;
     color: {$t['accentGreen']};
     white-space: nowrap;
   }
-  .cover-meta-value { font-size: 11pt; font-weight: 600; color: white; text-align: right; }
+  .cover-meta-value { text-align: right; font-size: 11pt; font-weight: 600; color: white; }
   .cover-meta-value-sub { font-size: 9.5pt; font-weight: 400; color: rgba(255,255,255,0.7); }
 
   .cover-foot {
