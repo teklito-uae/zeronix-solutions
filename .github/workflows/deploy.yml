@@ -23,7 +23,7 @@ jobs:
 
       - name: Build Frontend
         env:
-          VITE_API_BASE_URL: https://zeronixtech.com/api
+          VITE_API_BASE_URL: https://quote-builder.zeronix.store/api
         run: |
           cd client
           npm ci
