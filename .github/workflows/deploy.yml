@@ -1,0 +1,107 @@
+name: Build and Deploy to Production
+
+on:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
+
+      - name: Build Frontend
+        env:
+          VITE_API_BASE_URL: https://zeronixtech.com/api
+        run: |
+          cd client
+          npm ci
+          npm run build
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, ctype, iconv, mysql, zip, pdo_mysql
+          tools: composer:v2
+
+      - name: Build Backend
+        run: |
+          cd backend
+          composer install --no-dev --optimize-autoloader
+          rm -f bootstrap/cache/*.php
+
+      - name: Prepare Deploy Folder
+        run: |
+          mkdir -p deploy/backend
+
+          # 1. Copy Frontend Build
+          cp -r client/dist/* deploy/
+
+          # 2. Copy Backend Files
+          cp -r backend/* deploy/backend/
+
+          # 3. Inject .env from Secrets
+          echo "${{ secrets.PRODUCTION_ENV }}" > deploy/backend/.env
+
+          # 4. Create Laravel storage folders and preserve them
+          mkdir -p deploy/backend/storage/app/public
+          mkdir -p deploy/backend/storage/framework/cache
+          mkdir -p deploy/backend/storage/framework/sessions
+          mkdir -p deploy/backend/storage/framework/views
+          mkdir -p deploy/backend/storage/logs
+          touch deploy/backend/storage/app/public/.gitkeep
+          touch deploy/backend/storage/framework/cache/.gitkeep
+          touch deploy/backend/storage/framework/sessions/.gitkeep
+          touch deploy/backend/storage/framework/views/.gitkeep
+          touch deploy/backend/storage/logs/.gitkeep
+          chmod -R 775 deploy/backend/storage
+
+          # 4b. Public storage symlink (tracked in git so it survives future
+          # deploys even if the host cleans untracked files on pull)
+          ln -s backend/storage/app/public deploy/storage
+
+          # 5. Create root .htaccess for routing
+          cat > deploy/.htaccess <<EOF
+          <IfModule mod_rewrite.c>
+            RewriteEngine On
+
+            # Pass the Authorization header to the PHP backend
+            RewriteCond %{HTTP:Authorization} .
+            RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+            # Handle API requests
+            RewriteRule ^api/(.*)$ backend/public/index.php [L]
+
+            # Handle SPA routing - if file/dir doesn't exist, send to index.html
+            RewriteCond %{REQUEST_FILENAME} !-f
+            RewriteCond %{REQUEST_FILENAME} !-d
+            RewriteRule ^ index.html [L]
+          </IfModule>
+          EOF
+
+          # 6. Remove .gitignore files inside deploy to ensure everything is pushed
+          find deploy -name ".gitignore" -type f -delete
+
+      - name: Deploy to Production Branch
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: deploy
+          branch: production
+          clean: true
+          single-commit: false
+
+      - name: Trigger Hostinger Deployment
+        run: |
+          curl -X POST -H "Content-Type: application/json" -d '{}' "https://webhooks.hostinger.com/deploy/d6a4b95412e04dc577b19ff82d78f5c8"
