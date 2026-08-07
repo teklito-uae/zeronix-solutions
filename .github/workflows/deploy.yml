@@ -103,4 +103,4 @@ jobs:
 
       - name: Trigger Hostinger Deployment
         run: |
-          curl -X POST -H "Content-Type: application/json" -d '{}' "https://webhooks.hostinger.com/deploy/d6a4b95412e04dc577b19ff82d78f5c8"
+          curl -X POST -H "Content-Type: application/json" -d '{}' "https://webhooks.hostinger.com/deploy/63251c2544f56ddcb9bc2a133b1a2a0f"
