@@ -2,9 +2,10 @@
 
 namespace App\Services;
 
+use Dompdf\Dompdf;
+use Dompdf\Options;
 use setasign\Fpdi\Fpdi;
 use setasign\Fpdi\PdfParser\StreamReader;
-use Spatie\Browsershot\Browsershot;
 
 class QuotePdfGenerator
 {
@@ -20,100 +21,79 @@ class QuotePdfGenerator
     {
         ['cover' => $cover, 'rest' => $rest] = $this->renderer->splitCoverFromBlocks($quote['blocks'] ?? []);
 
-        $margin = QuoteHtmlRenderer::CONTENT_PAGE_MARGIN;
         $contentHtml = $this->renderer->renderContentHtml($rest, $quote, $company);
-        $contentPdf = $this->browsershot($contentHtml)
-            ->margins(
-                $this->mmToFloat($margin['top']),
-                $this->mmToFloat($margin['right']),
-                $this->mmToFloat($margin['bottom']),
-                $this->mmToFloat($margin['left']),
-            )
-            ->showBrowserHeaderAndFooter()
-            ->headerHtml($this->renderer->renderHeaderTemplate($company, $quote))
-            ->footerHtml($this->renderer->renderFooterTemplate($company))
-            ->format('A4')
-            ->pdf();
+        $contentPdf = $this->renderPdf($contentHtml, withFooter: true);
 
         if (!$cover) {
             return $contentPdf;
         }
 
         $coverHtml = $this->renderer->renderCoverHtml($cover, $quote, $company);
-        $coverPdf = $this->browsershot($coverHtml)
-            ->margins(0, 0, 0, 0)
-            ->format('A4')
-            ->pdf();
+        $coverPdf = $this->renderPdf($coverHtml, withFooter: false);
 
         return $this->mergePdfs([$coverPdf, $contentPdf]);
     }
 
-    private function mmToFloat(string $value): float
+    /**
+     * dompdf runs entirely in PHP (no Node/Chrome dependency), which is what
+     * makes this work on shared hosting where a local headless browser isn't
+     * available. Page size/margins come from the @page rule already baked
+     * into the HTML by QuoteHtmlRenderer.
+     */
+    private function renderPdf(string $html, bool $withFooter): string
     {
-        return (float) str_replace('mm', '', $value);
-    }
+        $options = new Options();
+        $options->set('isRemoteEnabled', false);
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('defaultFont', 'Inter');
 
-    private function browsershot(string $html): Browsershot
-    {
-        $browsershot = Browsershot::html($html)
-            ->setNodeModulePath(base_path('node_modules'))
-            ->setIncludePath('$PATH:/usr/local/bin:/opt/homebrew/bin:'.dirname(PHP_BINARY))
-            ->noSandbox()
-            ->newHeadless()
-            ->waitUntilNetworkIdle(false)
-            ->timeout(60)
-            ->showBackground()
-            // Our HTML embeds base64 fonts/logos and can be very large; on
-            // Windows the whole command (incl. HTML) is passed via an env
-            // var capped at ~32K UTF-16 code units, so write it to a temp
-            // file instead of inlining it on the command line.
-            ->writeOptionsToFile();
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
 
-        $chromePath = $this->resolveChromePath();
-        if ($chromePath) {
-            $browsershot->setChromePath($chromePath);
+        if ($withFooter) {
+            $this->drawFooter($dompdf);
         }
 
-        return $browsershot;
+        return $dompdf->output();
     }
 
     /**
-     * Puppeteer (installed in backend/node_modules) downloads Chrome into the
-     * OS-level puppeteer cache (e.g. %USERPROFILE%\.cache\puppeteer on
-     * Windows). The exact folder name is version-specific, so resolve
-     * whatever build is actually present instead of hardcoding a version.
-     * Override with the BROWSERSHOT_CHROME_PATH env var if needed.
+     * dompdf has no CSS `counter(page)` support (unlike browsers), so live
+     * page-number/page-count text can only be drawn via the Canvas API,
+     * which repeats a callback on every page once the total is known.
      */
-    private function resolveChromePath(): ?string
+    private function drawFooter(Dompdf $dompdf): void
     {
-        if ($override = env('BROWSERSHOT_CHROME_PATH')) {
-            return $override;
-        }
+        $canvas = $dompdf->getCanvas();
+        $fontMetrics = $dompdf->getFontMetrics();
+        $font = $fontMetrics->getFont('Inter', 'normal');
 
-        $cacheRoots = array_filter([
-            getenv('PUPPETEER_CACHE_DIR'),
-            getenv('USERPROFILE') ? getenv('USERPROFILE').'/.cache/puppeteer' : null,
-            getenv('HOME') ? getenv('HOME').'/.cache/puppeteer' : null,
-        ]);
+        // Content area stops 22mm above the true page bottom (see
+        // QuoteHtmlRenderer::CONTENT_PAGE_MARGIN); the footer sits inside
+        // that reserved band, comfortably clear of the physical page edge.
+        $mm = 72 / 25.4;
+        $pageWidth = 210 * $mm;
+        $pageHeight = 297 * $mm;
+        $marginLeft = 18 * $mm;
+        $marginRight = 18 * $mm;
+        $lineY = $pageHeight - (14 * $mm);
+        $textY = $lineY + (3 * $mm);
+        $size = 8.0;
+        $color = [0x6b / 255, 0x72 / 255, 0x80 / 255];
+        $lineColor = [0xdc / 255, 0xdf / 255, 0xe6 / 255];
 
-        foreach ($cacheRoots as $root) {
-            $matches = glob($root.'/chrome/*/chrome-win64/chrome.exe');
-            if ($matches) {
-                sort($matches);
+        $canvas->page_line($marginLeft, $lineY, $pageWidth - $marginRight, $lineY, $lineColor, 0.5);
+        $canvas->page_text($marginLeft, $textY, 'www.zeronix.ae', $font, $size, $color);
 
-                return end($matches);
-            }
-
-            // linux/mac build layout
-            $matches = glob($root.'/chrome/*/chrome-*/chrome');
-            if ($matches) {
-                sort($matches);
-
-                return end($matches);
-            }
-        }
-
-        return null;
+        // getTextWidth measures the literal string, and {PAGE_NUM}/
+        // {PAGE_COUNT} aren't substituted until draw time — so width is
+        // measured against a same-length numeric sample instead of the
+        // token text itself, to keep the right-alignment accurate.
+        $template = '{PAGE_NUM} of {PAGE_COUNT}';
+        $width = $fontMetrics->getTextWidth('99 of 99', $font, $size);
+        $canvas->page_text($pageWidth - $marginRight - $width, $textY, $template, $font, $size, $color);
     }
 
     /**
