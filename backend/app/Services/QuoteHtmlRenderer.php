@@ -205,6 +205,7 @@ HTML;
             'divider' => '<hr class="divider"/>',
             'pagebreak' => '<div class="pagebreak"></div>',
             'signature' => $this->renderSignature($block),
+            'about' => $this->renderAbout($block),
             default => '',
         };
     }
@@ -301,6 +302,35 @@ HTML;
             <div class="signature-sub">Authorized Signatory</div>
             <div class="signature-line">Name: ______________________</div>
             <div class="signature-line">Signature: ______________________</div>
+          </div>
+        </div>
+HTML;
+    }
+
+    private function renderAbout(array $block): string
+    {
+        $heading = $this->esc($block['heading'] ?? 'About Us');
+        $description = $block['description'] ?? '';
+        $services = $block['services'] ?? [];
+
+        $servicesHtml = implode('', array_map(function ($s) {
+            $title = $this->esc($s['title'] ?? '');
+            $desc = $this->esc($s['description'] ?? '');
+
+            return <<<HTML
+            <div class="about-service">
+              <div class="about-service-title">{$title}</div>
+              <div class="about-service-desc">{$desc}</div>
+            </div>
+HTML;
+        }, $services));
+
+        return <<<HTML
+        <div class="about-block">
+          <h2 class="section-heading">{$heading}</h2>
+          <div class="richtext">{$description}</div>
+          <div class="about-services">
+            {$servicesHtml}
           </div>
         </div>
 HTML;
@@ -665,6 +695,31 @@ HTML;
   .signature-company { margin-bottom: 1mm; }
   .signature-sub { color: {$t['mutedGray']}; font-size: 8.5pt; margin-bottom: 4mm; }
   .signature-line { margin-bottom: 4mm; }
+
+  /* ---------- About the company ---------- */
+  .about-services {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4mm;
+    margin: 4mm 0 2mm;
+  }
+  .about-service {
+    flex: 1 1 calc(50% - 4mm);
+    min-width: 70mm;
+    border: 1px solid {$t['borderGray']};
+    border-radius: 2mm;
+    padding: 3.5mm;
+  }
+  .about-service-title {
+    font-weight: 700;
+    color: {$t['darkNavy']};
+    font-size: 10pt;
+    margin-bottom: 1mm;
+  }
+  .about-service-desc {
+    font-size: 9pt;
+    color: {$t['mutedGray']};
+  }
 CSS;
     }
 

@@ -5,6 +5,7 @@ import { RichTextBlockView } from "./RichTextBlockView";
 import { PriceTableBlockView } from "./PriceTableBlockView";
 import { GenericTableBlockView } from "./GenericTableBlockView";
 import { SignatureBlockView } from "./SignatureBlockView";
+import { AboutBlockView } from "./AboutBlockView";
 
 export function BlockRenderer({
   block,
@@ -28,6 +29,8 @@ export function BlockRenderer({
       return <GenericTableBlockView block={block} onChange={onChange} />;
     case "signature":
       return <SignatureBlockView block={block} onChange={onChange} />;
+    case "about":
+      return <AboutBlockView block={block} onChange={onChange} />;
     case "divider":
       return <hr className="border-gray-200 my-2" />;
     case "pagebreak":

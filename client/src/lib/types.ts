@@ -40,6 +40,20 @@ export type SignatureBlock = {
   rightLabel: string;
 };
 
+export type AboutServiceItem = {
+  id: string;
+  title: string;
+  description: string;
+};
+
+export type AboutBlock = {
+  id: string;
+  type: "about";
+  heading: string;
+  description: string;
+  services: AboutServiceItem[];
+};
+
 export type Block =
   | CoverBlock
   | HeadingBlock
@@ -48,7 +62,8 @@ export type Block =
   | GenericTableBlock
   | DividerBlock
   | PageBreakBlock
-  | SignatureBlock;
+  | SignatureBlock
+  | AboutBlock;
 
 export interface Client {
   id: number;

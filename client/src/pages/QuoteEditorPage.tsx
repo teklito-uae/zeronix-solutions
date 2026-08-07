@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
+import { ListTree } from "lucide-react";
 import { api } from "../lib/api";
 import type { Quote } from "../lib/types";
 import { BlockEditor } from "../components/BlockEditor";
 import { ClientPicker } from "../components/ClientPicker";
+import { QuoteOutline } from "../components/QuoteOutline";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,6 +28,12 @@ import {
 } from "@/components/ui/dialog";
 
 type SaveState = "idle" | "saving" | "saved";
+
+const STATUS_OPTIONS: { value: Quote["status"]; label: string; dot: string }[] = [
+  { value: "draft", label: "Draft", dot: "bg-gray-400" },
+  { value: "sent", label: "Sent", dot: "bg-blue-500" },
+  { value: "accepted", label: "Accepted", dot: "bg-emerald-500" },
+];
 
 export function QuoteEditorPage() {
   const { id } = useParams();
@@ -142,7 +150,7 @@ export function QuoteEditorPage() {
       <div className="mx-auto flex max-w-6xl gap-6 px-6 py-8">
         <aside className="w-64 shrink-0 space-y-4">
           <Card>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-3 px-4 py-3">
               <div className="space-y-1.5">
                 <Label>Client</Label>
                 <ClientPicker
@@ -150,21 +158,25 @@ export function QuoteEditorPage() {
                   onChange={(client_id) => scheduleSave({ ...quote, client_id })}
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label>Quote Date</Label>
-                <Input
-                  type="date"
-                  value={quote.quote_date}
-                  onChange={(e) => scheduleSave({ ...quote, quote_date: e.target.value })}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Due Date</Label>
-                <Input
-                  type="date"
-                  value={quote.due_date ?? ""}
-                  onChange={(e) => scheduleSave({ ...quote, due_date: e.target.value })}
-                />
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1.5">
+                  <Label>Quote Date</Label>
+                  <Input
+                    type="date"
+                    value={quote.quote_date}
+                    onChange={(e) => scheduleSave({ ...quote, quote_date: e.target.value })}
+                    className="px-2 text-xs"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Due Date</Label>
+                  <Input
+                    type="date"
+                    value={quote.due_date ?? ""}
+                    onChange={(e) => scheduleSave({ ...quote, due_date: e.target.value })}
+                    className="px-2 text-xs"
+                  />
+                </div>
               </div>
               <div className="space-y-1.5">
                 <Label>Status</Label>
@@ -176,14 +188,31 @@ export function QuoteEditorPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="sent">Sent</SelectItem>
-                    <SelectItem value="accepted">Accepted</SelectItem>
+                    {STATUS_OPTIONS.map(({ value, label, dot }) => (
+                      <SelectItem key={value} value={value}>
+                        <span className="flex items-center gap-2">
+                          <span className={`size-1.5 rounded-full ${dot}`} />
+                          {label}
+                        </span>
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
             </CardContent>
           </Card>
+
+          <div className="sticky top-16">
+            <Card>
+              <CardContent className="space-y-2 px-4 py-3">
+                <div className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  <ListTree className="h-3.5 w-3.5" />
+                  Outline
+                </div>
+                <QuoteOutline blocks={quote.blocks} />
+              </CardContent>
+            </Card>
+          </div>
         </aside>
 
         <main className="max-w-3xl flex-1 rounded-lg border bg-card p-8">
