@@ -71,6 +71,13 @@ jobs:
           # deploys even if the host cleans untracked files on pull)
           ln -s backend/storage/app/public deploy/storage
 
+          # 4c. bootstrap/cache must exist and be writable at runtime; git
+          # doesn't track empty dirs, so keep a placeholder after the
+          # .gitignore cleanup step removes the one that ships with the repo
+          mkdir -p deploy/backend/bootstrap/cache
+          touch deploy/backend/bootstrap/cache/.gitkeep
+          chmod -R 775 deploy/backend/bootstrap/cache
+
           # 5. Create root .htaccess for routing
           cat > deploy/.htaccess <<EOF
           <IfModule mod_rewrite.c>
